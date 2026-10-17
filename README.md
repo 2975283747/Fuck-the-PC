@@ -13,7 +13,7 @@
 [![Version](https://img.shields.io/badge/version-2.0.0-0A84FF?style=flat-square)]()
 [![License](https://img.shields.io/badge/license-All%20Rights%20Reserved-555555?style=flat-square)]()
 
-[下载软件](https://github.com/2975283747/Fuck-the-PC/releases/latest/download/TrayTemps.exe)
+[下载软件](https://github.com/2975283747/Fuck-the-PC/releases/latest/download/TrayTemps-2.0.0-win-x64.zip)
 &nbsp;·&nbsp;
 [观看 15 秒宣传片](https://github.com/2975283747/Fuck-the-PC/releases/latest/download/FuckThePC-Promo-15s.mp4)
 &nbsp;·&nbsp;
@@ -69,7 +69,7 @@
 ### Windows x64
 
 1. 打开 [Latest Release](https://github.com/2975283747/Fuck-the-PC/releases/latest)。
-2. 下载 `TrayTemps.exe`。
+2. 下载 `TrayTemps-2.0.0-win-x64.zip`，解压后运行里面的 `TrayTemps.exe`。
 3. 双击运行，并在 UAC 提示中点击“是”。
 4. 程序会进入任务栏托盘。右键托盘图标选择 **自定义风扇转速**。
 5. 如需开机自启动，右键托盘图标勾选 **开机自启动**。
@@ -153,4 +153,5 @@ outputs\TrayTemps.exe
 Copyright © 2026 李孟达. All rights reserved.
 
 未经允许禁止转载。详见 [LICENSE](LICENSE)。
+
 
