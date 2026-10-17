@@ -1,0 +1,329 @@
+<Window x:Class="TrayTemps.SpeedProfileEditorWindow"
+        x:ClassModifier="internal"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="clr-namespace:TrayTemps"
+        Title="Fuck the PC"
+        Width="660"
+        Height="720"
+        MinWidth="620"
+        MinHeight="620"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        Background="Transparent"
+        ResizeMode="CanResize"
+        ShowInTaskbar="False"
+        WindowStartupLocation="CenterOwner"
+        UseLayoutRounding="True">
+    <Window.Resources>
+        <SolidColorBrush x:Key="AppBackground" Color="#F5F5F7" />
+        <SolidColorBrush x:Key="TitleBarBackground" Color="#FBFBFD" />
+        <SolidColorBrush x:Key="CardBackground" Color="#FFFFFF" />
+        <SolidColorBrush x:Key="TextPrimary" Color="#1D1D1F" />
+        <SolidColorBrush x:Key="TextSecondary" Color="#6E6E73" />
+        <SolidColorBrush x:Key="BorderBrush" Color="#DEDEE3" />
+        <SolidColorBrush x:Key="DividerBrush" Color="#E3E3E8" />
+        <SolidColorBrush x:Key="ControlBackground" Color="#ECECF0" />
+        <SolidColorBrush x:Key="ControlHover" Color="#E1E1E6" />
+        <SolidColorBrush x:Key="Accent" Color="#0071E3" />
+
+        <Style TargetType="TextBox">
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimary}" />
+            <Setter Property="Background" Value="{DynamicResource CardBackground}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
+        </Style>
+        <Style TargetType="ComboBox">
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimary}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ComboBox">
+                        <Grid>
+                            <Border Background="{DynamicResource ControlBackground}"
+                                    BorderBrush="{DynamicResource BorderBrush}"
+                                    BorderThickness="1"
+                                    CornerRadius="7" />
+                            <ToggleButton Background="Transparent"
+                                          BorderThickness="0"
+                                          Focusable="False"
+                                          ClickMode="Press"
+                                          IsChecked="{Binding IsDropDownOpen, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}" />
+                            <ContentPresenter Margin="10,0,30,0"
+                                              VerticalAlignment="Center"
+                                              HorizontalAlignment="Left"
+                                              IsHitTestVisible="False"
+                                              Content="{TemplateBinding SelectionBoxItem}">
+                                <ContentPresenter.ContentTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding DisplayText}" />
+                                    </DataTemplate>
+                                </ContentPresenter.ContentTemplate>
+                            </ContentPresenter>
+                            <Path Width="8"
+                                  Height="5"
+                                  Margin="0,0,10,0"
+                                  HorizontalAlignment="Right"
+                                  VerticalAlignment="Center"
+                                  IsHitTestVisible="False"
+                                  Fill="{DynamicResource TextSecondary}"
+                                  Data="M 0 0 L 4 4 L 8 0 Z" />
+                            <Popup x:Name="PART_Popup"
+                                   AllowsTransparency="True"
+                                   Focusable="False"
+                                   IsOpen="{TemplateBinding IsDropDownOpen}"
+                                   Placement="Bottom"
+                                   PopupAnimation="Slide">
+                                <Border Background="{DynamicResource CardBackground}"
+                                        BorderBrush="{DynamicResource BorderBrush}"
+                                        BorderThickness="1"
+                                        CornerRadius="8"
+                                        MaxHeight="320"
+                                        MinWidth="{TemplateBinding ActualWidth}">
+                                    <ScrollViewer x:Name="DropDownScrollViewer">
+                                        <ItemsPresenter />
+                                    </ScrollViewer>
+                                </Border>
+                            </Popup>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style TargetType="ComboBoxItem">
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimary}" />
+            <Setter Property="Background" Value="{DynamicResource CardBackground}" />
+            <Setter Property="Padding" Value="10,7" />
+        </Style>
+        <Style x:Key="FieldLabelStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="Foreground" Value="{DynamicResource TextSecondary}" />
+            <Setter Property="Margin" Value="0,0,0,6" />
+        </Style>
+        <Style x:Key="FieldBoxStyle" TargetType="TextBox">
+            <Setter Property="Height" Value="36" />
+            <Setter Property="Padding" Value="10,4" />
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Background" Value="{DynamicResource CardBackground}" />
+        </Style>
+        <Style x:Key="EditorButtonStyle" TargetType="Button">
+            <Setter Property="Padding" Value="14,8" />
+            <Setter Property="Background" Value="{DynamicResource ControlBackground}" />
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimary}" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Border"
+                                Background="{TemplateBinding Background}"
+                                CornerRadius="9"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Border" Property="Background" Value="{DynamicResource ControlHover}" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="PrimaryEditorButtonStyle"
+               TargetType="Button"
+               BasedOn="{StaticResource EditorButtonStyle}">
+            <Setter Property="Background" Value="{DynamicResource Accent}" />
+            <Setter Property="Foreground" Value="White" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+        </Style>
+    </Window.Resources>
+
+    <Border CornerRadius="18"
+            Background="{DynamicResource AppBackground}"
+            BorderBrush="{DynamicResource BorderBrush}"
+            BorderThickness="1"
+            TextElement.Foreground="{DynamicResource TextPrimary}">
+        <Border.Effect>
+            <DropShadowEffect BlurRadius="30"
+                              ShadowDepth="7"
+                              Opacity="0.2"
+                              Color="#000000" />
+        </Border.Effect>
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="52" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="68" />
+            </Grid.RowDefinitions>
+
+            <Border Grid.Row="0"
+                    Background="{DynamicResource TitleBarBackground}"
+                    CornerRadius="18,18,0,0"
+                    BorderBrush="{DynamicResource DividerBrush}"
+                    BorderThickness="0,0,0,1"
+                    MouseLeftButtonDown="TitleBar_MouseLeftButtonDown">
+                <Grid>
+                    <TextBlock x:Name="EditorTitleText"
+                               Margin="22,0,0,0"
+                               VerticalAlignment="Center"
+                               FontSize="16"
+                               FontWeight="SemiBold"
+                               Foreground="{DynamicResource TextPrimary}" />
+                    <Button x:Name="CloseButton"
+                            Content="✕"
+                            Width="34"
+                            Height="28"
+                            Margin="0,0,14,0"
+                            HorizontalAlignment="Right"
+                            VerticalAlignment="Center"
+                            Background="Transparent"
+                            BorderThickness="0"
+                            Foreground="{DynamicResource TextSecondary}"
+                            Cursor="Hand"
+                            Click="CancelButton_Click" />
+                </Grid>
+            </Border>
+
+            <ScrollViewer Grid.Row="1"
+                          VerticalScrollBarVisibility="Auto"
+                          HorizontalScrollBarVisibility="Disabled">
+                <StackPanel Margin="24,22,24,18">
+                    <TextBlock x:Name="NameLabel" Style="{StaticResource FieldLabelStyle}" />
+                    <TextBox x:Name="NameTextBox" Style="{StaticResource FieldBoxStyle}" />
+
+                    <Grid Margin="0,18,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Grid.Column="0" Margin="0,0,10,0">
+                            <TextBlock x:Name="ModeLabel" Style="{StaticResource FieldLabelStyle}" />
+                            <ComboBox x:Name="ModeComboBox"
+                                      Height="36"
+                                      FontSize="13"
+                                      SelectionChanged="ModeComboBox_SelectionChanged" />
+                        </StackPanel>
+                        <StackPanel Grid.Column="1" Margin="10,0,0,0">
+                            <TextBlock x:Name="SensorLabel" Style="{StaticResource FieldLabelStyle}" />
+                            <ComboBox x:Name="SensorComboBox"
+                                      Height="36"
+                                      FontSize="13"
+                                      DisplayMemberPath="DisplayName"
+                                      SelectedValuePath="Id" />
+                        </StackPanel>
+                    </Grid>
+
+                    <StackPanel x:Name="FixedPanel" Margin="0,22,0,0">
+                        <TextBlock x:Name="FixedLabel" Style="{StaticResource FieldLabelStyle}" />
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="78" />
+                            </Grid.ColumnDefinitions>
+                            <Slider x:Name="FixedSlider"
+                                    Grid.Column="0"
+                                    Minimum="0"
+                                    Maximum="100"
+                                    TickFrequency="5"
+                                    IsSnapToTickEnabled="True"
+                                    ValueChanged="FixedSlider_ValueChanged" />
+                            <TextBox x:Name="FixedValueTextBox"
+                                     Grid.Column="1"
+                                     Margin="12,0,0,0"
+                                     Style="{StaticResource FieldBoxStyle}"
+                                     TextChanged="FixedValueTextBox_TextChanged" />
+                        </Grid>
+                    </StackPanel>
+
+                    <Grid x:Name="LinearPanel" Margin="0,22,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+                        <TextBlock x:Name="LowTemperatureLabel"
+                                   Grid.Row="0"
+                                   Grid.Column="0"
+                                   Style="{StaticResource FieldLabelStyle}" />
+                        <TextBlock x:Name="HighTemperatureLabel"
+                                   Grid.Row="0"
+                                   Grid.Column="1"
+                                   Margin="10,0,0,0"
+                                   Style="{StaticResource FieldLabelStyle}" />
+                        <TextBox x:Name="LowTemperatureTextBox"
+                                 Grid.Row="1"
+                                 Grid.Column="0"
+                                 Style="{StaticResource FieldBoxStyle}" />
+                        <TextBox x:Name="HighTemperatureTextBox"
+                                 Grid.Row="1"
+                                 Grid.Column="1"
+                                 Margin="10,0,0,0"
+                                 Style="{StaticResource FieldBoxStyle}" />
+                        <TextBlock x:Name="LowPercentLabel"
+                                   Grid.Row="2"
+                                   Grid.Column="0"
+                                   Margin="0,16,0,6"
+                                   Style="{StaticResource FieldLabelStyle}" />
+                        <TextBlock x:Name="HighPercentLabel"
+                                   Grid.Row="2"
+                                   Grid.Column="1"
+                                   Margin="10,16,0,6"
+                                   Style="{StaticResource FieldLabelStyle}" />
+                        <TextBox x:Name="LowPercentTextBox"
+                                 Grid.Row="3"
+                                 Grid.Column="0"
+                                 Style="{StaticResource FieldBoxStyle}" />
+                        <TextBox x:Name="HighPercentTextBox"
+                                 Grid.Row="3"
+                                 Grid.Column="1"
+                                 Margin="10,0,0,0"
+                                 Style="{StaticResource FieldBoxStyle}" />
+                    </Grid>
+
+                    <StackPanel x:Name="CurvePanel" Margin="0,22,0,0">
+                        <TextBlock x:Name="CurvePointsLabel"
+                                   VerticalAlignment="Center"
+                                   Style="{StaticResource FieldLabelStyle}" />
+                        <local:CurveEditor x:Name="ProfileCurveEditor"
+                                           Height="320"
+                                           Margin="0,8,0,0" />
+                        <TextBlock x:Name="CurveHint"
+                                   Margin="0,8,0,0"
+                                   FontSize="11"
+                                   Foreground="{DynamicResource TextSecondary}"
+                                   TextWrapping="Wrap" />
+                    </StackPanel>
+                </StackPanel>
+            </ScrollViewer>
+
+            <Border Grid.Row="2"
+                    Background="{DynamicResource TitleBarBackground}"
+                    CornerRadius="0,0,18,18"
+                    BorderBrush="{DynamicResource DividerBrush}"
+                    BorderThickness="0,1,0,0">
+                <StackPanel Orientation="Horizontal"
+                            HorizontalAlignment="Right"
+                            VerticalAlignment="Center"
+                            Margin="0,0,24,0">
+                    <Button x:Name="CancelButton"
+                            Style="{StaticResource EditorButtonStyle}"
+                            Margin="0,0,10,0"
+                            Click="CancelButton_Click" />
+                    <Button x:Name="SaveButton"
+                            Style="{StaticResource PrimaryEditorButtonStyle}"
+                            Click="SaveButton_Click" />
+                </StackPanel>
+            </Border>
+        </Grid>
+    </Border>
+</Window>
+

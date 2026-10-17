@@ -1,0 +1,13 @@
+work/
+dist/
+outputs/
+release/
+src/**/bin/
+src/**/obj/
+tools/**/bin/
+tools/**/obj/
+*.user
+*.suo
+*.log
+.vs/
+

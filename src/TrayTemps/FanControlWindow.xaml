@@ -1,0 +1,790 @@
+<Window x:Class="TrayTemps.FanControlWindow"
+        x:ClassModifier="internal"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="clr-namespace:TrayTemps"
+        Title="Fuck the PC"
+        Width="1180"
+        Height="780"
+        MinWidth="980"
+        MinHeight="660"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        Background="Transparent"
+        ResizeMode="CanResize"
+        ShowInTaskbar="True"
+        UseLayoutRounding="True"
+        TextOptions.TextFormattingMode="Display"
+        PreviewMouseMove="Window_PreviewMouseMove"
+        PreviewMouseLeftButtonDown="Window_PreviewMouseLeftButtonDown">
+
+    <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVisibility" />
+
+        <SolidColorBrush x:Key="TextPrimary" Color="#1D1D1F" />
+        <SolidColorBrush x:Key="TextSecondary" Color="#6E6E73" />
+        <SolidColorBrush x:Key="Accent" Color="#0071E3" />
+        <SolidColorBrush x:Key="AccentSoft" Color="#E8F2FF" />
+        <SolidColorBrush x:Key="Danger" Color="#FF3B30" />
+        <SolidColorBrush x:Key="AppBackground" Color="#F5F5F7" />
+        <SolidColorBrush x:Key="TitleBarBackground" Color="#FBFBFD" />
+        <SolidColorBrush x:Key="SidebarBackground" Color="#F0F0F3" />
+        <SolidColorBrush x:Key="CardBackground" Color="#FFFFFF" />
+        <SolidColorBrush x:Key="CardDisabledBackground" Color="#F0F0F3" />
+        <SolidColorBrush x:Key="BorderBrush" Color="#DEDEE3" />
+        <SolidColorBrush x:Key="DividerBrush" Color="#E3E3E8" />
+        <SolidColorBrush x:Key="ControlBackground" Color="#ECECF0" />
+        <SolidColorBrush x:Key="ControlHover" Color="#E1E1E6" />
+        <SolidColorBrush x:Key="ControlPressed" Color="#D6D6DC" />
+        <SolidColorBrush x:Key="WindowHover" Color="#E8E8ED" />
+        <SolidColorBrush x:Key="ToggleOff" Color="#D1D5DB" />
+
+        <Style TargetType="ComboBox">
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimary}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ComboBox">
+                        <Grid>
+                            <Border Background="{DynamicResource ControlBackground}"
+                                    BorderBrush="{DynamicResource BorderBrush}"
+                                    BorderThickness="1"
+                                    CornerRadius="7" />
+                            <ToggleButton Background="Transparent"
+                                          BorderThickness="0"
+                                          Focusable="False"
+                                          ClickMode="Press"
+                                          IsChecked="{Binding IsDropDownOpen, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}" />
+                            <ContentPresenter Margin="10,0,30,0"
+                                              VerticalAlignment="Center"
+                                              HorizontalAlignment="Left"
+                                              IsHitTestVisible="False"
+                                              Content="{TemplateBinding SelectionBoxItem}">
+                                <ContentPresenter.ContentTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding DisplayText}" />
+                                    </DataTemplate>
+                                </ContentPresenter.ContentTemplate>
+                            </ContentPresenter>
+                            <Path Width="8"
+                                  Height="5"
+                                  Margin="0,0,10,0"
+                                  HorizontalAlignment="Right"
+                                  VerticalAlignment="Center"
+                                  IsHitTestVisible="False"
+                                  Fill="{DynamicResource TextSecondary}"
+                                  Data="M 0 0 L 4 4 L 8 0 Z" />
+                            <Popup x:Name="PART_Popup"
+                                   AllowsTransparency="True"
+                                   Focusable="False"
+                                   IsOpen="{TemplateBinding IsDropDownOpen}"
+                                   Placement="Bottom"
+                                   PopupAnimation="Slide">
+                                <Border Background="{DynamicResource CardBackground}"
+                                        BorderBrush="{DynamicResource BorderBrush}"
+                                        BorderThickness="1"
+                                        CornerRadius="8"
+                                        MaxHeight="320"
+                                        MinWidth="{TemplateBinding ActualWidth}">
+                                    <ScrollViewer>
+                                        <ItemsPresenter />
+                                    </ScrollViewer>
+                                </Border>
+                            </Popup>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Opacity" Value="0.55" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style TargetType="ComboBoxItem">
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimary}" />
+            <Setter Property="Background" Value="{DynamicResource CardBackground}" />
+            <Setter Property="Padding" Value="10,7" />
+        </Style>
+        <Style TargetType="ContextMenu">
+            <Setter Property="Background" Value="{DynamicResource CardBackground}" />
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimary}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ContextMenu">
+                        <Border Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="1"
+                                CornerRadius="10"
+                                Padding="4">
+                            <ItemsPresenter KeyboardNavigation.DirectionalNavigation="Cycle" />
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style TargetType="MenuItem">
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimary}" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="MenuItem">
+                        <Border x:Name="ItemBorder"
+                                Background="Transparent"
+                                CornerRadius="7"
+                                Padding="0"
+                                Margin="3,2">
+                            <ContentPresenter ContentSource="Header" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsHighlighted" Value="True">
+                                <Setter TargetName="ItemBorder"
+                                        Property="Background"
+                                        Value="{DynamicResource ControlHover}" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="CardStyle" TargetType="Border">
+            <Setter Property="Background" Value="{DynamicResource CardBackground}" />
+            <Setter Property="CornerRadius" Value="18" />
+            <Setter Property="Padding" Value="18" />
+            <Setter Property="Effect">
+                <Setter.Value>
+                    <DropShadowEffect BlurRadius="22"
+                                      ShadowDepth="3"
+                                      Opacity="0.12"
+                                      Color="#000000" />
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="PillButtonStyle" TargetType="Button">
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimary}" />
+            <Setter Property="Background" Value="{DynamicResource ControlBackground}" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Padding" Value="14,8" />
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Border"
+                                Background="{TemplateBinding Background}"
+                                CornerRadius="9"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center"
+                                              VerticalAlignment="Center" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Border" Property="Background" Value="{DynamicResource ControlHover}" />
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="Border" Property="Background" Value="{DynamicResource ControlPressed}" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="PrimaryPillButtonStyle"
+               TargetType="Button"
+               BasedOn="{StaticResource PillButtonStyle}">
+            <Setter Property="Background" Value="{DynamicResource Accent}" />
+            <Setter Property="Foreground" Value="White" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+        </Style>
+
+        <Style x:Key="WindowButtonStyle" TargetType="Button">
+            <Setter Property="Width" Value="34" />
+            <Setter Property="Height" Value="28" />
+            <Setter Property="Margin" Value="2,0" />
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="Foreground" Value="{DynamicResource TextSecondary}" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Border"
+                                Background="{TemplateBinding Background}"
+                                CornerRadius="8">
+                            <ContentPresenter HorizontalAlignment="Center"
+                                              VerticalAlignment="Center" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Border" Property="Background" Value="{DynamicResource WindowHover}" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="CloseButtonStyle"
+               TargetType="Button"
+               BasedOn="{StaticResource WindowButtonStyle}">
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="{DynamicResource Danger}" />
+                    <Setter Property="Foreground" Value="White" />
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="ToggleSwitchStyle" TargetType="ToggleButton">
+            <Setter Property="Width" Value="48" />
+            <Setter Property="Height" Value="28" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ToggleButton">
+                        <Grid Width="48" Height="28">
+                            <Border x:Name="Track"
+                                    Background="{DynamicResource ToggleOff}"
+                                    CornerRadius="14" />
+                            <Border x:Name="OnTrack"
+                                    Background="{DynamicResource Accent}"
+                                    CornerRadius="14"
+                                    Opacity="0" />
+                            <Ellipse x:Name="Knob"
+                                     Width="22"
+                                     Height="22"
+                                     Margin="3,0,0,0"
+                                     HorizontalAlignment="Left"
+                                     Fill="White">
+                                <Ellipse.RenderTransform>
+                                    <TranslateTransform x:Name="KnobTransform" X="0" />
+                                </Ellipse.RenderTransform>
+                                <Ellipse.Effect>
+                                    <DropShadowEffect BlurRadius="5"
+                                                      ShadowDepth="1"
+                                                      Opacity="0.25"
+                                                      Color="#000000" />
+                                </Ellipse.Effect>
+                            </Ellipse>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Trigger.EnterActions>
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <DoubleAnimation Storyboard.TargetName="KnobTransform"
+                                                             Storyboard.TargetProperty="X"
+                                                             To="20"
+                                                             Duration="0:0:0.2">
+                                                <DoubleAnimation.EasingFunction>
+                                                    <CubicEase EasingMode="EaseOut" />
+                                                </DoubleAnimation.EasingFunction>
+                                            </DoubleAnimation>
+                                            <DoubleAnimation Storyboard.TargetName="OnTrack"
+                                                             Storyboard.TargetProperty="Opacity"
+                                                             To="1"
+                                                             Duration="0:0:0.2" />
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </Trigger.EnterActions>
+                                <Trigger.ExitActions>
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <DoubleAnimation Storyboard.TargetName="KnobTransform"
+                                                             Storyboard.TargetProperty="X"
+                                                             To="0"
+                                                             Duration="0:0:0.2">
+                                                <DoubleAnimation.EasingFunction>
+                                                    <CubicEase EasingMode="EaseOut" />
+                                                </DoubleAnimation.EasingFunction>
+                                            </DoubleAnimation>
+                                            <DoubleAnimation Storyboard.TargetName="OnTrack"
+                                                             Storyboard.TargetProperty="Opacity"
+                                                             To="0"
+                                                             Duration="0:0:0.2" />
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </Trigger.ExitActions>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="SectionTitleStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="28" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimary}" />
+        </Style>
+
+        <Style x:Key="SectionSubtitleStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="Foreground" Value="{DynamicResource TextSecondary}" />
+            <Setter Property="Margin" Value="0,6,0,0" />
+        </Style>
+    </Window.Resources>
+
+    <Border x:Name="RootBorder"
+            CornerRadius="18"
+            Background="{DynamicResource AppBackground}"
+            BorderBrush="{DynamicResource BorderBrush}"
+            BorderThickness="1"
+            TextElement.Foreground="{DynamicResource TextPrimary}">
+        <Border.Effect>
+            <DropShadowEffect BlurRadius="34"
+                              ShadowDepth="8"
+                              Opacity="0.22"
+                              Color="#000000" />
+        </Border.Effect>
+
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="58" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+
+            <Border Grid.Row="0"
+                    Background="{DynamicResource TitleBarBackground}"
+                    CornerRadius="18,18,0,0"
+                    BorderBrush="{DynamicResource DividerBrush}"
+                    BorderThickness="0,0,0,1"
+                    MouseLeftButtonDown="TitleBar_MouseLeftButtonDown">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="230" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel Grid.Column="0"
+                                Orientation="Horizontal"
+                                Margin="20,0,0,0"
+                                VerticalAlignment="Center">
+                        <Border Width="28"
+                                Height="28"
+                                CornerRadius="8"
+                                Background="#0F172A">
+                            <Path Data="M14,3 C12,3 10.5,4.5 10.5,6.5 L10.5,15 C9,16 8,17.7 8,19.5 C8,22.8 10.7,25.5 14,25.5 C17.3,25.5 20,22.8 20,19.5 C20,17.7 19,16 17.5,15 L17.5,6.5 C17.5,4.5 16,3 14,3 Z M14,8 C14.8,8 15.5,8.7 15.5,9.5 L15.5,17 L16,17.3 C16.8,17.8 17.5,18.7 17.5,19.7 C17.5,21.6 16,23 14,23 C12,23 10.5,21.6 10.5,19.7 C10.5,18.7 11.2,17.8 12,17.3 L12.5,17 L12.5,9.5 C12.5,8.7 13.2,8 14,8 Z"
+                                  Fill="#EF4444"
+                                  Stretch="Uniform" />
+                        </Border>
+                        <TextBlock Text="Fuck the PC 2.0"
+                                   Margin="10,0,0,0"
+                                   VerticalAlignment="Center"
+                                   FontSize="15"
+                                   FontWeight="SemiBold"
+                                   Foreground="{DynamicResource TextPrimary}" />
+                    </StackPanel>
+
+                    <TextBlock x:Name="WindowStatusText"
+                               Grid.Column="1"
+                               Margin="8,0,0,0"
+                               VerticalAlignment="Center"
+                               FontSize="12"
+                               Foreground="{DynamicResource TextSecondary}" />
+
+                    <StackPanel Grid.Column="2"
+                                Orientation="Horizontal"
+                                Margin="0,0,10,0"
+                                VerticalAlignment="Center">
+                        <Button x:Name="ZhButton"
+                                Content="中文"
+                                Style="{StaticResource PillButtonStyle}"
+                                Padding="10,5"
+                                Margin="0,0,6,0"
+                                Click="ZhButton_Click" />
+                        <Button x:Name="EnButton"
+                                Content="ENG"
+                                Style="{StaticResource PillButtonStyle}"
+                                Padding="10,5"
+                                Margin="0,0,12,0"
+                                Click="EnButton_Click" />
+                        <Button x:Name="ThemeButton"
+                                Style="{StaticResource PillButtonStyle}"
+                                Padding="8,5"
+                                Margin="0,0,12,0"
+                                ToolTip="皮肤"
+                                AutomationProperties.Name="皮肤"
+                                Click="ThemeButton_Click">
+                            <Path Width="16"
+                                  Height="16"
+                                  Stretch="Uniform"
+                                  Fill="{DynamicResource TextPrimary}"
+                                  Data="M 4,0 L 8,2 L 12,0 L 16,4 L 13,8 L 11,6 L 11,16 L 5,16 L 5,6 L 3,8 L 0,4 Z" />
+                        </Button>
+                        <CheckBox x:Name="ShowHiddenCheckBox"
+                                  Content="显示隐藏项"
+                                  VerticalAlignment="Center"
+                                  Margin="0,0,12,0"
+                                  Foreground="{DynamicResource TextSecondary}"
+                                  Checked="ShowHiddenCheckBox_Changed"
+                                  Unchecked="ShowHiddenCheckBox_Changed" />
+                        <Button x:Name="MinButton"
+                                Style="{StaticResource WindowButtonStyle}"
+                                Click="MinButton_Click">
+                            <Grid Width="16" Height="16">
+                                <Path Width="10"
+                                      Height="2"
+                                      HorizontalAlignment="Center"
+                                      VerticalAlignment="Center"
+                                      Stretch="Fill"
+                                      Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
+                                      StrokeThickness="1.4"
+                                      StrokeStartLineCap="Round"
+                                      StrokeEndLineCap="Round"
+                                      Data="M 0,1 L 10,1" />
+                            </Grid>
+                        </Button>
+                        <Button x:Name="MaxButton"
+                                Style="{StaticResource WindowButtonStyle}"
+                                Click="MaxButton_Click">
+                            <Grid Width="16" Height="16">
+                                <Rectangle x:Name="MaxGlyph"
+                                           Width="10"
+                                           Height="10"
+                                           HorizontalAlignment="Center"
+                                           VerticalAlignment="Center"
+                                           RadiusX="2"
+                                           RadiusY="2"
+                                           Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
+                                           StrokeThickness="1.4"
+                                           Fill="Transparent" />
+                                <Rectangle x:Name="RestoreGlyph"
+                                           Width="8"
+                                           Height="8"
+                                           Margin="2,2,-2,-2"
+                                           HorizontalAlignment="Center"
+                                           VerticalAlignment="Center"
+                                           RadiusX="1.6"
+                                           RadiusY="1.6"
+                                           Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
+                                           StrokeThickness="1.4"
+                                           Fill="Transparent"
+                                           Visibility="Collapsed" />
+                            </Grid>
+                        </Button>
+                        <Button x:Name="CloseButton"
+                                Style="{StaticResource CloseButtonStyle}"
+                                Click="CloseButton_Click">
+                            <Grid Width="16" Height="16">
+                                <Path Width="10"
+                                      Height="10"
+                                      HorizontalAlignment="Center"
+                                      VerticalAlignment="Center"
+                                      Stretch="Uniform"
+                                      Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
+                                      StrokeThickness="1.4"
+                                      StrokeStartLineCap="Round"
+                                      StrokeEndLineCap="Round"
+                                      Data="M 0,0 L 10,10 M 10,0 L 0,10" />
+                            </Grid>
+                        </Button>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <Grid Grid.Row="1">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="230" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <Border Grid.Column="0"
+                        Background="{DynamicResource SidebarBackground}"
+                        CornerRadius="0,0,0,18"
+                        BorderBrush="{DynamicResource DividerBrush}"
+                        BorderThickness="0,0,1,0">
+                    <Grid Margin="16,22,16,18">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+
+                        <StackPanel Grid.Row="0">
+                            <Button x:Name="FansNavButton"
+                                    Content="风扇"
+                                    Style="{StaticResource PillButtonStyle}"
+                                    HorizontalContentAlignment="Left"
+                                    Margin="0,0,0,8"
+                                    Click="FansNavButton_Click" />
+                            <Button x:Name="ProfilesNavButton"
+                                    Content="调速卡片"
+                                    Style="{StaticResource PillButtonStyle}"
+                                    HorizontalContentAlignment="Left"
+                                    Click="ProfilesNavButton_Click" />
+                            <Button x:Name="AboutNavButton"
+                                    Content="关于"
+                                    Style="{StaticResource PillButtonStyle}"
+                                    HorizontalContentAlignment="Left"
+                                    Margin="0,8,0,0"
+                                    Click="AboutNavButton_Click" />
+                        </StackPanel>
+
+                    </Grid>
+                </Border>
+
+                <Grid Grid.Column="1" Margin="28,22,28,20">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="34" />
+                    </Grid.RowDefinitions>
+
+                    <Grid Grid.Row="0" Margin="0,0,0,18">
+                        <Grid x:Name="FansHeader">
+                            <StackPanel>
+                                <TextBlock x:Name="FansTitleText"
+                                           Text="风扇控制"
+                                           Style="{StaticResource SectionTitleStyle}" />
+                                <TextBlock x:Name="FansSubtitleText"
+                                           Text="每个卡片对应一个可控制的硬件风扇通道"
+                                           Style="{StaticResource SectionSubtitleStyle}" />
+                            </StackPanel>
+                        </Grid>
+
+                        <Grid x:Name="ProfilesHeader" Visibility="Collapsed">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0">
+                                <TextBlock x:Name="ProfilesTitleText"
+                                           Text="调速卡片"
+                                           Style="{StaticResource SectionTitleStyle}" />
+                                <TextBlock x:Name="ProfilesSubtitleText"
+                                           Text="固定速度、线性调速和多点曲线，可重复分配给任意风扇"
+                                           Style="{StaticResource SectionSubtitleStyle}" />
+                            </StackPanel>
+                            <StackPanel Grid.Column="1"
+                                        Orientation="Horizontal"
+                                        VerticalAlignment="Bottom">
+                                <Button x:Name="AddFixedButton"
+                                        Content="固定速度"
+                                        Style="{StaticResource PillButtonStyle}"
+                                        Click="AddFixedButton_Click" />
+                                <Button x:Name="AddLinearButton"
+                                        Content="线性调速"
+                                        Style="{StaticResource PillButtonStyle}"
+                                        Margin="8,0,0,0"
+                                        Click="AddLinearButton_Click" />
+                                <Button x:Name="AddCurveButton"
+                                        Content="曲线调速"
+                                        Style="{StaticResource PrimaryPillButtonStyle}"
+                                        Margin="8,0,0,0"
+                                        Click="AddCurveButton_Click" />
+                            </StackPanel>
+                        </Grid>
+                    </Grid>
+
+                    <Grid Grid.Row="1">
+                        <ScrollViewer x:Name="FansScrollViewer"
+                                      VerticalScrollBarVisibility="Auto"
+                                      HorizontalScrollBarVisibility="Disabled">
+                            <ItemsControl x:Name="FansItems" ItemsSource="{Binding FansView}">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <WrapPanel />
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border x:Name="FanCard"
+                                                Style="{StaticResource CardStyle}"
+                                                Width="330"
+                                                Height="292"
+                                                Margin="0,0,18,18"
+                                                Visibility="{Binding IsVisible, Converter={StaticResource BoolToVisibility}}">
+                                            <Border.ContextMenu>
+                                                <ContextMenu Opened="FanContextMenu_Opened">
+                                                    <MenuItem Click="FanRename_Click" />
+                                                    <MenuItem Click="FanHide_Click" />
+                                                </ContextMenu>
+                                            </Border.ContextMenu>
+                                            <Grid>
+                                                <Grid.RowDefinitions>
+                                                    <RowDefinition Height="Auto" />
+                                                    <RowDefinition Height="108" />
+                                                    <RowDefinition Height="Auto" />
+                                                    <RowDefinition Height="38" />
+                                                    <RowDefinition Height="*" />
+                                                </Grid.RowDefinitions>
+
+                                                <Grid Grid.Row="0">
+                                                    <StackPanel Margin="0,0,62,0">
+                                                        <TextBlock Text="{Binding Name}"
+                                                                   FontSize="15"
+                                                                   FontWeight="SemiBold"
+                                                                   Foreground="{DynamicResource TextPrimary}"
+                                                                   TextTrimming="CharacterEllipsis" />
+                                                        <TextBlock Text="{Binding HardwareName}"
+                                                                   Margin="0,4,0,0"
+                                                                   FontSize="11"
+                                                                   Foreground="{DynamicResource TextSecondary}"
+                                                                   TextTrimming="CharacterEllipsis" />
+                                                    </StackPanel>
+                                                    <ToggleButton Style="{StaticResource ToggleSwitchStyle}"
+                                                                  HorizontalAlignment="Right"
+                                                                  VerticalAlignment="Top"
+                                                                  IsChecked="{Binding IsEnabled, Mode=OneWay}"
+                                                                  Click="FanToggle_Click" />
+                                                </Grid>
+
+                                                <local:FanIcon Grid.Row="1"
+                                                               Width="96"
+                                                               Height="96"
+                                                               HorizontalAlignment="Center"
+                                                               VerticalAlignment="Center"
+                                                               IsActive="{Binding IsEnabled}"
+                                                               IsSpinning="{Binding IsEnabled}"
+                                                               SpeedPercent="{Binding PercentValue}" />
+
+                                                <Grid Grid.Row="2" Margin="0,8,0,0">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*" />
+                                                        <ColumnDefinition Width="*" />
+                                                    </Grid.ColumnDefinitions>
+                                                    <StackPanel Grid.Column="0">
+                                                        <TextBlock Text="{Binding RpmText}"
+                                                                   FontSize="16"
+                                                                   FontWeight="SemiBold"
+                                                                   Foreground="{DynamicResource TextPrimary}" />
+                                                        <TextBlock Text="RPM"
+                                                                   FontSize="10"
+                                                                   Foreground="{DynamicResource TextSecondary}" />
+                                                    </StackPanel>
+                                                    <StackPanel Grid.Column="1"
+                                                                HorizontalAlignment="Right">
+                                                        <TextBlock Text="{Binding PercentText}"
+                                                                   FontSize="16"
+                                                                   FontWeight="SemiBold"
+                                                                   Foreground="{DynamicResource Accent}" />
+                                                        <TextBlock Text="%"
+                                                                   FontSize="10"
+                                                                   HorizontalAlignment="Right"
+                                                                   Foreground="{DynamicResource TextSecondary}" />
+                                                    </StackPanel>
+                                                </Grid>
+
+                                                <ComboBox Grid.Row="3"
+                                                          Margin="0,10,0,0"
+                                                          Height="34"
+                                                          FontSize="12"
+                                                          ItemsSource="{Binding ProfileChoices}"
+                                                          DisplayMemberPath="Name"
+                                                          SelectedValuePath="Id"
+                                                          SelectedValue="{Binding SelectedProfileId, Mode=TwoWay}"
+                                                          SelectionChanged="FanProfile_SelectionChanged" />
+
+                                                <TextBlock Grid.Row="4"
+                                                           Margin="0,8,0,0"
+                                                           FontSize="11"
+                                                           Foreground="{DynamicResource Danger}"
+                                                           TextWrapping="Wrap"
+                                                           Text="{Binding Error}" />
+                                            </Grid>
+                                        </Border>
+
+                                        <DataTemplate.Triggers>
+                                            <DataTrigger Binding="{Binding IsEnabled}" Value="True">
+                                                <Setter TargetName="FanCard" Property="Background" Value="{DynamicResource CardBackground}" />
+                                                <Setter TargetName="FanCard" Property="Opacity" Value="1" />
+                                            </DataTrigger>
+                                            <DataTrigger Binding="{Binding IsEnabled}" Value="False">
+                                                <Setter TargetName="FanCard" Property="Background" Value="{DynamicResource CardDisabledBackground}" />
+                                                <Setter TargetName="FanCard" Property="Opacity" Value="0.78" />
+                                            </DataTrigger>
+                                        </DataTemplate.Triggers>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </ScrollViewer>
+
+                        <ScrollViewer x:Name="ProfilesScrollViewer"
+                                      Visibility="Collapsed"
+                                      VerticalScrollBarVisibility="Auto"
+                                      HorizontalScrollBarVisibility="Disabled">
+                            <ItemsControl x:Name="ProfilesItems" ItemsSource="{Binding Profiles}">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <WrapPanel />
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border Style="{StaticResource CardStyle}"
+                                                Width="330"
+                                                Height="194"
+                                                Margin="0,0,18,18">
+                                            <Grid>
+                                                <Grid.RowDefinitions>
+                                                    <RowDefinition Height="Auto" />
+                                                    <RowDefinition Height="*" />
+                                                    <RowDefinition Height="Auto" />
+                                                </Grid.RowDefinitions>
+                                                <StackPanel Grid.Row="0">
+                                                    <TextBlock Text="{Binding Name}"
+                                                               FontSize="16"
+                                                               FontWeight="SemiBold"
+                                                               Foreground="{DynamicResource TextPrimary}"
+                                                               TextTrimming="CharacterEllipsis" />
+                                                    <Border Background="{DynamicResource AccentSoft}"
+                                                            CornerRadius="8"
+                                                            Padding="8,3"
+                                                            HorizontalAlignment="Left"
+                                                            Margin="0,8,0,0">
+                                                        <TextBlock Text="{Binding ModeText}"
+                                                                   FontSize="11"
+                                                                   Foreground="{DynamicResource Accent}" />
+                                                    </Border>
+                                                </StackPanel>
+                                                <StackPanel Grid.Row="1" Margin="0,12,0,0">
+                                                    <TextBlock Text="{Binding SensorName}"
+                                                               FontSize="11"
+                                                               Foreground="{DynamicResource TextSecondary}"
+                                                               TextTrimming="CharacterEllipsis" />
+                                                    <TextBlock Text="{Binding Summary}"
+                                                               Margin="0,8,0,0"
+                                                               FontSize="12"
+                                                               Foreground="{DynamicResource TextPrimary}"
+                                                               TextWrapping="Wrap" />
+                                                </StackPanel>
+                                                <StackPanel Grid.Row="2"
+                                                            Orientation="Horizontal"
+                                                            HorizontalAlignment="Right">
+                                                    <Button Content="{Binding EditText}"
+                                                            Style="{StaticResource PillButtonStyle}"
+                                                            Padding="12,6"
+                                                            Click="EditProfileButton_Click"
+                                                            Tag="{Binding}" />
+                                                    <Button Content="{Binding DeleteText}"
+                                                            Style="{StaticResource PillButtonStyle}"
+                                                            Padding="12,6"
+                                                            Margin="8,0,0,0"
+                                                            Click="DeleteProfileButton_Click"
+                                                            Tag="{Binding}" />
+                                                </StackPanel>
+                                            </Grid>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </ScrollViewer>
+                    </Grid>
+
+                    <TextBlock x:Name="StatusText"
+                               Grid.Row="2"
+                               VerticalAlignment="Bottom"
+                               FontSize="11"
+                               Foreground="{DynamicResource TextSecondary}" />
+                </Grid>
+            </Grid>
+        </Grid>
+    </Border>
+</Window>
+
