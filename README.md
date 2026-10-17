@@ -1,0 +1,3 @@
+# Fuck the PC
+
+Initializing repository...
